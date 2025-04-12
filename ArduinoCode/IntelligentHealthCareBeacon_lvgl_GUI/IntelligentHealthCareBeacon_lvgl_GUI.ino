@@ -136,7 +136,7 @@ void setup() {
   lv_obj_align(temp_icon, LV_ALIGN_LEFT_MID, 0, 0);
 
   temp_label = lv_label_create(temp_box);
-  lv_label_set_text(temp_label, "0.0 °C");
+  lv_label_set_text(temp_label, "-:- °C");
   lv_obj_align(temp_label, LV_ALIGN_RIGHT_MID, 0, 0);
 
   // --- Widget de HR (frecuencia cardíaca) ---
