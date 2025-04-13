@@ -1,0 +1,6 @@
+{
+    "nrf-connect.debugging.bindings": {
+        "${workspaceFolder}/build": "Launch build",
+        "${workspaceFolder}/build/mbc_nrf9151_core_v1": "Launch build"
+    }
+}
