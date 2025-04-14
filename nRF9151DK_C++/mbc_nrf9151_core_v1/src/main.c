@@ -9,6 +9,8 @@
 // My includes
 #include "biosignal.h"
 #include "ecg.h"
+#include "i2c_helper.h"
+
 
 // UART
 #define UART_NODE DT_NODELABEL(uart1)
@@ -16,14 +18,20 @@ const struct device *uart_dev;
 
 // Semaphore to trigger the ECG task
 struct k_sem ecg_sem;
+struct k_sem i2c_sem;
+
 
 // Thread stacks and structures
 K_THREAD_STACK_DEFINE(ecg_stack, 1024);
 K_THREAD_STACK_DEFINE(uart_stack, 1024);
+K_THREAD_STACK_DEFINE(i2c_stack, 1024);
+
 struct k_thread ecg_thread_data;
 struct k_thread uart_thread_data;
+struct k_thread i2c_thread_data;
 k_tid_t ecg_tid;
 k_tid_t uart_tid;
+k_tid_t i2c_tid;    
 
 // ECG data capture simulation
 void ecg_thread(void *arg1, void *arg2, void *arg3) {
@@ -45,6 +53,26 @@ void ecg_thread(void *arg1, void *arg2, void *arg3) {
     }
 }
 
+void i2c_thread(void *arg1, void *arg2, void *arg3) {
+    const struct device *i2c_dev = i2c_helper_init();
+
+    if (i2c_dev == NULL) {
+        printk("[I2C] Initialization failed.\n");
+        return;
+    }
+    initMax30102(i2c_dev);
+
+    while(1){
+        uint8_t value;
+        int ret = i2c_helper_read_reg(i2c_dev, DEFAULT_I2C_ADDR, 0x75, &value);
+        if (ret < 0) {
+            printk("[I2C] Read failed: %d\n", ret);
+        } else {
+            printk("[I2C] Read value: %02X\n", value);
+        }
+    }
+}
+
 void uart_thread(void *arg1, void *arg2, void *arg3) {
     unsigned char ch;
     char cmd_buf[64];
@@ -63,6 +91,9 @@ void uart_thread(void *arg1, void *arg2, void *arg3) {
                 if (strstr(cmd_buf, "<CMD>:START_ECG;")) {
                     printk("[UART] Sending signal to ECG thread...\n");
                     k_sem_give(&ecg_sem);
+                }else if(strstr(cmd_buf, "<CMD>:START_PPG;")) {
+                    printk("[I2C] Sending signal to PPG thread...\n");
+                    k_sem_give(&i2c_sem);
                 }
 
                 cmd_index = 0;
@@ -109,6 +140,13 @@ int main(void) {
                                NULL, NULL, NULL,
                                5, 0, K_NO_WAIT);
     k_thread_name_set(uart_tid, "UART Thread");
+
+    i2c_tid = k_thread_create(&i2c_thread_data, i2c_stack,
+                              K_THREAD_STACK_SIZEOF(i2c_stack),
+                              i2c_thread,
+                              NULL, NULL, NULL,
+                              3, 0, K_NO_WAIT);
+    k_thread_name_set(i2c_tid, "I2C Thread");
 
     return 0;
 }

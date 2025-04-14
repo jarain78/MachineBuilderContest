@@ -6,4 +6,7 @@ target_sources(app PRIVATE
   src/main.c
   src/biosignal.c
   src/ecg.c
+  src/i2c_helper.c
+  src/spo2.c
+  src/max30102.c
 )
