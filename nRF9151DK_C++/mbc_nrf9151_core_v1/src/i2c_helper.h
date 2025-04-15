@@ -20,4 +20,7 @@ int i2c_helper_read_reg(const struct device *i2c_dev, uint8_t dev_addr, uint8_t 
 
 void initMax30102(const struct device *i2c_dev);
 void getHearthRate(void);
+void configI2C(const struct device *i2c_dev);
+
+
 #endif  // I2C_HELPER_H

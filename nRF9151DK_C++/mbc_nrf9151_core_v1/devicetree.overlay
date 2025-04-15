@@ -43,6 +43,11 @@
     status = "okay";
 };
 
+&i2c0 {
+    status = "disabled";
+};
+
+
 &i2c2 {
     status = "okay";
     compatible = "nordic,nrf-twim";
@@ -71,4 +76,8 @@
             low-power-enable;
         };
     };
+};
+&pcal6408a {
+    status = "okay";
+    int-gpios = <&gpio0 16 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
 };

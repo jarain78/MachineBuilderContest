@@ -12,6 +12,7 @@
 #include "i2c_helper.h"
 
 
+
 // UART
 #define UART_NODE DT_NODELABEL(uart1)
 const struct device *uart_dev;
@@ -32,6 +33,7 @@ struct k_thread i2c_thread_data;
 k_tid_t ecg_tid;
 k_tid_t uart_tid;
 k_tid_t i2c_tid;    
+
 
 // ECG data capture simulation
 void ecg_thread(void *arg1, void *arg2, void *arg3) {
@@ -60,16 +62,26 @@ void i2c_thread(void *arg1, void *arg2, void *arg3) {
         printk("[I2C] Initialization failed.\n");
         return;
     }
+
+    // Initialize the MAX30102 sensor
     initMax30102(i2c_dev);
+    
+    // Initialize the I2C communication with XIAO
 
     while(1){
-        uint8_t value;
-        int ret = i2c_helper_read_reg(i2c_dev, DEFAULT_I2C_ADDR, 0x75, &value);
-        if (ret < 0) {
-            printk("[I2C] Read failed: %d\n", ret);
+        /*uint8_t whoami_reg = 0x75;
+        uint8_t whoami_val;
+    
+        int ret = i2c_write_read(i2c_dev, 0x29, &whoami_reg, sizeof(whoami_reg),
+                                 &whoami_val, sizeof(whoami_val));
+    
+        if (ret == 0) {
+            printk("WHOAMI: 0x%02X\n", whoami_val);
         } else {
-            printk("[I2C] Read value: %02X\n", value);
+            printk("I2C read failed: %d\n", ret);
         }
+        k_msleep(1000);  // Sleep for 1 second   */  
+
     }
 }
 

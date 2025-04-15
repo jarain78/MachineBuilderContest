@@ -5,6 +5,10 @@
     },
     "files.associations": {
         "*.py": "python",
-        "printk.h": "c"
+        "printk.h": "c",
+        "uart.h": "c",
+        "max30102.h": "c",
+        "stdbool.h": "c",
+        "string.h": "c"
     }
 }
