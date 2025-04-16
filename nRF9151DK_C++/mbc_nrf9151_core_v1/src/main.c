@@ -10,30 +10,31 @@
 #include "biosignal.h"
 #include "ecg.h"
 #include "i2c_helper.h"
-
-
+#include "robot.h"  
+#include "max30102.h"
 
 // UART
 #define UART_NODE DT_NODELABEL(uart1)
 const struct device *uart_dev;
 
-// Semaphore to trigger the ECG task
+// Semaphore to trigger each task
 struct k_sem ecg_sem;
-struct k_sem i2c_sem;
-
+struct k_sem max30102_sem;
 
 // Thread stacks and structures
 K_THREAD_STACK_DEFINE(ecg_stack, 1024);
 K_THREAD_STACK_DEFINE(uart_stack, 1024);
-K_THREAD_STACK_DEFINE(i2c_stack, 1024);
+K_THREAD_STACK_DEFINE(max30102_stack, 1024);
 
 struct k_thread ecg_thread_data;
 struct k_thread uart_thread_data;
-struct k_thread i2c_thread_data;
+struct k_thread max30102_thread_data;
+
 k_tid_t ecg_tid;
 k_tid_t uart_tid;
-k_tid_t i2c_tid;    
+k_tid_t max30102_tid;    
 
+robot_t robot;
 
 // ECG data capture simulation
 void ecg_thread(void *arg1, void *arg2, void *arg3) {
@@ -48,40 +49,41 @@ void ecg_thread(void *arg1, void *arg2, void *arg3) {
             printk("[ECG] Error capturing data.\n");
             continue;
         } else {
-            biosignal_send_data(captured_ecg, ECG_SAMPLES);
+            //biosignal_send_data_generic("ECG", captured_ecg, ECG_SAMPLES, 10.5, 78);
+            biosignal_send_data("ECG", captured_ecg, ECG_SAMPLES);
+
         }
 
         printk("[ECG] Capture complete. Returning to wait state.\n");
     }
 }
 
-void i2c_thread(void *arg1, void *arg2, void *arg3) {
+void max30102_thread(void *arg1, void *arg2, void *arg3) {
     const struct device *i2c_dev = i2c_helper_init();
 
     if (i2c_dev == NULL) {
-        printk("[I2C] Initialization failed.\n");
+        printk("[MAX30102] Initialization failed.\n");
         return;
     }
 
-    // Initialize the MAX30102 sensor
     initMax30102(i2c_dev);
-    
-    // Initialize the I2C communication with XIAO
+    printk("[MAX30102] PPG thread started and waiting for signal...\n");
 
-    while(1){
-        /*uint8_t whoami_reg = 0x75;
-        uint8_t whoami_val;
-    
-        int ret = i2c_write_read(i2c_dev, 0x29, &whoami_reg, sizeof(whoami_reg),
-                                 &whoami_val, sizeof(whoami_val));
-    
-        if (ret == 0) {
-            printk("WHOAMI: 0x%02X\n", whoami_val);
+    while (1) {
+        k_sem_take(&max30102_sem, K_FOREVER);
+        printk("[MAX30102] Capturing data...\n");
+
+        float *red_data = get30sRedLed();
+        if (red_data == NULL) {
+            printk("[MAX30102] Error capturing data.\n");
+            continue;
         } else {
-            printk("I2C read failed: %d\n", ret);
+    
+            //biosignal_send_data_generic("PPG", red_data, MAX30102_BUFFER_SIZE, 10.5, 78);
+            biosignal_send_data("PPG", red_data, MAX30102_BUFFER_SIZE);
         }
-        k_msleep(1000);  // Sleep for 1 second   */  
 
+        printk("[MAX30102] Capture complete. Returning to wait state.\n");
     }
 }
 
@@ -100,12 +102,12 @@ void uart_thread(void *arg1, void *arg2, void *arg3) {
                 cmd_buf[cmd_index] = '\0';
                 printk("\n[UART] Command received: %s\n", cmd_buf);
 
-                if (strstr(cmd_buf, "<CMD>:START_ECG;")) {
-                    printk("[UART] Sending signal to ECG thread...\n");
+                if (strstr(cmd_buf, "<CMD>:START:ECG;")) {
+                    printk("[UART] Trigger ECG capture.\n");
                     k_sem_give(&ecg_sem);
-                }else if(strstr(cmd_buf, "<CMD>:START_PPG;")) {
-                    printk("[I2C] Sending signal to PPG thread...\n");
-                    k_sem_give(&i2c_sem);
+                } else if (strstr(cmd_buf, "<CMD>:START:PPG;")) {
+                    printk("[UART] Trigger PPG capture.\n");
+                    k_sem_give(&max30102_sem);
                 }
 
                 cmd_index = 0;
@@ -121,7 +123,6 @@ void uart_thread(void *arg1, void *arg2, void *arg3) {
     }
 }
 
-
 int main(void) {
     uart_dev = DEVICE_DT_GET(UART_NODE);
     if (!device_is_ready(uart_dev)) {
@@ -131,14 +132,12 @@ int main(void) {
 
     printk("[SYSTEM] UART initialized\n");
 
-    // Initialize ADC and other devices
     biosignal_init(uart_dev);
     ecg_adc_init();
 
-    // Initialize semaphore
     k_sem_init(&ecg_sem, 0, 1);
+    k_sem_init(&max30102_sem, 0, 1);
 
-    // Create threads
     ecg_tid = k_thread_create(&ecg_thread_data, ecg_stack,
                               K_THREAD_STACK_SIZEOF(ecg_stack),
                               ecg_thread,
@@ -153,12 +152,12 @@ int main(void) {
                                5, 0, K_NO_WAIT);
     k_thread_name_set(uart_tid, "UART Thread");
 
-    i2c_tid = k_thread_create(&i2c_thread_data, i2c_stack,
-                              K_THREAD_STACK_SIZEOF(i2c_stack),
-                              i2c_thread,
-                              NULL, NULL, NULL,
-                              3, 0, K_NO_WAIT);
-    k_thread_name_set(i2c_tid, "I2C Thread");
+    max30102_tid = k_thread_create(&max30102_thread_data, max30102_stack,
+                                   K_THREAD_STACK_SIZEOF(max30102_stack),
+                                   max30102_thread,
+                                   NULL, NULL, NULL,
+                                   3, 0, K_NO_WAIT);
+    k_thread_name_set(max30102_tid, "PPG Thread");
 
     return 0;
 }

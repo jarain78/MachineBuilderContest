@@ -5,8 +5,8 @@
 #include <zephyr/drivers/i2c.h>
 #include <stdint.h>
 
-// Default I2C address for MPU6050
-#define DEFAULT_I2C_ADDR 0x68
+
+
 
 // Node label for the I2C device
 #define I2C_HELPER_NODE DT_NODELABEL(i2c2)
@@ -21,6 +21,9 @@ int i2c_helper_read_reg(const struct device *i2c_dev, uint8_t dev_addr, uint8_t 
 void initMax30102(const struct device *i2c_dev);
 void getHearthRate(void);
 void configI2C(const struct device *i2c_dev);
+void readRedLedPPG();
+void readIRLedPPG();
+float* get30sRedLed();
 
 
 #endif  // I2C_HELPER_H

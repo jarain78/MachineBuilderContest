@@ -13,7 +13,7 @@
 #define SAMPLE_RATE      3  // SAMPLERATE_400
 #define PULSE_WIDTH      3  // PULSEWIDTH_411
 #define ADC_RANGE        1  // ADCRANGE_4096
-
+ 
 max30102_t sensor;
 
 const struct device *i2c_helper_init(void) {
@@ -75,8 +75,18 @@ void readIRLedPPG(){
     k_sleep(K_MSEC(100));
 }
 
+float* get30sRedLed(){
+    printk("Capturing 30s of Red LED data...\n");
+    float* red_data = capture_red_led_data(&sensor);
+    //printk("Captured Red LED data: %u\n", red_data[0]);
+
+    return red_data;
+}
+
 
 void configI2C(const struct device *i2c_dev) {
     printk("Configuring I2C...\n");
 }
+
+
 

@@ -9,6 +9,8 @@
         "uart.h": "c",
         "max30102.h": "c",
         "stdbool.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "robot.h": "c",
+        "stdint.h": "c"
     }
 }

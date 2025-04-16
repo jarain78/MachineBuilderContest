@@ -42,9 +42,13 @@
 #define MAX30102_EXPECTED_PARTID  0x15
 
 #define MAX30102_REG_FIFO_DATA  0x07
-
-
 #define MAX30102_BUF_SIZE 32
+
+#define MAX30102_CAPTURE_DURATION_SEC 30
+#define MAX30102_SAMPLING_FREQ_HZ     25  // Ajusta según tu configuración
+#define MAX30102_BUFFER_SIZE          (MAX30102_CAPTURE_DURATION_SEC * MAX30102_SAMPLING_FREQ_HZ)
+
+static float red_buffer[MAX30102_BUFFER_SIZE];
 
 
 typedef struct {
@@ -81,7 +85,7 @@ typedef struct {
 } max30102_config_t;
 
 // API pública
-int max30102_init(max30102_t *dev, const struct device *i2c_dev, uint8_t addr);
+int max30102_begin(max30102_t *dev, const struct device *i2c_dev, uint8_t addr);
 int max30102_configure(max30102_t *dev, const max30102_config_t *cfg);
 int max30102_read_fifo(max30102_t *dev, uint32_t *red, uint32_t *ir);
 int max30102_read_temperature(max30102_t *dev, float *temp_c);
@@ -108,5 +112,7 @@ uint32_t max30102_get_red(max30102_t *dev);
 uint32_t max30102_get_ir(max30102_t *dev);
 void readIRLedPPG();
 void readRedLedPPG();
+float* capture_red_led_data(max30102_t *dev);
+
 
 #endif // MAX30102_H

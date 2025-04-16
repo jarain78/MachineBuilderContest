@@ -253,8 +253,8 @@ void max30102_read_fifo_and_calculate(
     int32_t *hr,
     int8_t *hr_valid)
 {
-    uint32_t ir_buffer[100];
-    uint32_t red_buffer[100];
+    uint32_t ir_buffer_fifo[100];
+    uint32_t red_buffer_fifo[100];
     int32_t collected = 0;
 
     while (collected < 100) {
@@ -264,8 +264,8 @@ void max30102_read_fifo_and_calculate(
         if (samples < 0) samples += MAX30102_BUF_SIZE;
 
         while (samples-- && collected < 100) {
-            red_buffer[collected] = dev->buffer.red[dev->buffer.tail];
-            ir_buffer[collected] = dev->buffer.ir[dev->buffer.tail];
+            red_buffer_fifo[collected] = dev->buffer.red[dev->buffer.tail];
+            ir_buffer_fifo[collected] = dev->buffer.ir[dev->buffer.tail];
             dev->buffer.tail = (dev->buffer.tail + 1) % MAX30102_BUF_SIZE;
             collected++;
         }
@@ -274,12 +274,36 @@ void max30102_read_fifo_and_calculate(
     }
 
     maxim_heart_rate_and_oxygen_saturation(
-        ir_buffer,
+        ir_buffer_fifo,
         100,
-        red_buffer,
+        red_buffer_fifo,
         spo2,
         spo2_valid,
         hr,
         hr_valid
     );
 }
+
+
+float* capture_red_led_data(max30102_t *dev)
+{
+    uint32_t start_time = k_uptime_get(); 
+    uint32_t elapsed = 0;
+    int index = 0;
+
+    memset(red_buffer, 0, sizeof(red_buffer)); // Asegura datos limpios
+
+    while (elapsed < MAX30102_CAPTURE_DURATION_SEC * 1000 && index < MAX30102_BUFFER_SIZE) {
+        uint32_t red_val = max30102_get_red(dev); 
+        red_buffer[index++] = (float)red_val;
+
+        printk("[MAX30102] Sample %d: %u (elapsed: %ums)\n", index, red_val, elapsed);
+
+        k_msleep(1000 / MAX30102_SAMPLING_FREQ_HZ);  
+        elapsed = k_uptime_get() - start_time;
+    }
+
+    printk("[MAX30102] Finished capture. Total samples: %d\n", index);
+    return red_buffer;
+}
+

@@ -57,15 +57,14 @@ void biosignal_send_uart(const char *data) {
     }
 }
 
-void biosignal_send_data(float *ecg_array, int len) {
+void biosignal_send_data(const char *signal_type, float *ecg_array, int len) {
+    offset = 0;
+    memset(buf, 0, sizeof(buf));  // Limpia el contenido previo del buffer
 
-
-    printk("Sending ECG data.\n");
-    offset += snprintf(buf + offset, sizeof(buf) - offset, "<DATA>:ECG=[");
-    
+    printk("Sending %s data.\n", signal_type);
+    offset += snprintf(buf + offset, sizeof(buf) - offset, "<DATA>:%s=[", signal_type);    
 
     for (int i = 0; i < len; i++) {
-        
         offset += snprintf(buf + offset, sizeof(buf) - offset,
                            "%.4f%s", (double)ecg_array[i], (i < len - 1) ? "," : "");
         
@@ -77,6 +76,36 @@ void biosignal_send_data(float *ecg_array, int len) {
     offset += snprintf(buf + offset, sizeof(buf) - offset,
                        "];TEMP=%.1f;HR=%d;\n", (double)temp, hr);
 
-    printk("Sending ECG data.\n");
+    printk("Sending %s data.\n", signal_type);
+    biosignal_send_uart(buf);
+
+    k_msleep(10); 
+    uart_poll_out(uart_dev, '\r');
+    uart_poll_out(uart_dev, '\n');
+    k_msleep(10);  // Permite que el hardware termine de enviar
+}
+
+
+void biosignal_send_data_generic(const char *signal_type, float *data_array, int len, float temp_val, int hr_val) {
+    char buf[1024];
+    int offset = 0;
+
+    printk("Sending %s data.\n", signal_type);
+    
+    offset += snprintf(buf + offset, sizeof(buf) - offset, "<DATA>:%s=[", signal_type);
+
+    for (int i = 0; i < len; i++) {
+        offset += snprintf(buf + offset, sizeof(buf) - offset,
+                           "%.4f%s", (double)data_array[i], (i < len - 1) ? "," : "");
+        
+        if (offset >= sizeof(buf) - 20) {  // Prevent overflow
+            break;
+        }
+    }
+
+    offset += snprintf(buf + offset, sizeof(buf) - offset,
+                       "];TEMP=%.1f;HR=%d;\n", (double)temp_val, hr_val);
+
+    printk("Sending %s data.\n", signal_type);
     biosignal_send_uart(buf);
 }

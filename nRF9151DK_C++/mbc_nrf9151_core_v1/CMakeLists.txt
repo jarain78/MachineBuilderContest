@@ -9,4 +9,5 @@ target_sources(app PRIVATE
   src/i2c_helper.c
   src/spo2.c
   src/max30102.c
+  src/robot.c
 )
