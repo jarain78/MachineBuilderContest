@@ -5,6 +5,12 @@
 #include <zephyr/drivers/i2c.h>
 #include <stdint.h>
 
+// char cmd[] = "<CMD>:GOTO=1;";
+
+// <CMD>:ML_DATA=[0.12,0.34,0.56,...];
+// <ML_RESULT>:LABEL="caida";PROB=0.89;
+
+
 // Robot Addres
 #define ROBOT_I2C_ADDR         0x29
 #define ROBOT_PARTID           0x01
