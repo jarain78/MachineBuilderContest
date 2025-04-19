@@ -32,13 +32,6 @@ void wifi_ssid_select_cb(lv_event_t *e) {
   Serial.println("Selected SSID: " + selected_ssid);
 }*/
 
-void robot_action_event_cb(lv_event_t *e) {
-  lv_obj_t *btn = lv_event_get_target(e);
-  const char *label = lv_label_get_text(lv_obj_get_child(btn, 0));
-  String action = String(label);
-  action.replace(" ", "_");  // convierte "Acción 1" → "Acción_1"
-  Serial.println("ACCION_" + action.substring(action.length() - 1));
-}
 
 
 void setup() {
@@ -152,6 +145,66 @@ void setup() {
   hr_label = lv_label_create(hr_box);
   lv_label_set_text(hr_label, "-:- bpm");
   lv_obj_align(hr_label, LV_ALIGN_RIGHT_MID, 0, 0);
+
+  // Contenedor para los botones de selección de señal
+  lv_obj_t *signal_btn_container = lv_obj_create(tab1);
+  lv_obj_set_size(signal_btn_container, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+  lv_obj_align(signal_btn_container, LV_ALIGN_BOTTOM_LEFT, 10, -10);  // Debajo del gráfico5
+  lv_obj_set_flex_flow(signal_btn_container, LV_FLEX_FLOW_ROW);
+  lv_obj_set_style_pad_row(signal_btn_container, 0, 40);
+  lv_obj_set_style_pad_column(signal_btn_container, 0, 40);
+
+  // Función para evento de los botones
+  auto signal_button_event_cb = [](lv_event_t *e) {
+    lv_obj_t *btn = lv_event_get_target(e);
+    char *label = lv_label_get_text(lv_obj_get_child(btn, 0));
+
+    String signal = String(label);
+
+    if (signal.equals("ECG")) {
+      Serial.println("<CMD>:START:ECG;");
+    } else if (signal.equals("FCG")) {
+      Serial.println("<CMD>:START:FCG;");
+    }else if(signal.equals("PPG")) {
+      Serial.println("<CMD>:START:PPG;");
+    }else if(signal.equals("Analize Signal")) {
+      Serial.println("<CMD>:START:SET_ML;");
+    }
+
+
+
+    // Aquí podrías cambiar el tipo de señal mostrada si quieres
+  };
+
+  // Función para crear botones
+  auto add_signal_button = [&](const char *label) {
+    lv_obj_t *btn = lv_btn_create(signal_btn_container);
+    lv_obj_set_size(btn, 80, 40);
+    lv_obj_t *lbl = lv_label_create(btn);
+    lv_label_set_text(lbl, label);
+    lv_obj_center(lbl);
+
+    lv_obj_add_event_cb(btn, signal_button_event_cb, LV_EVENT_CLICKED, NULL);
+  };
+
+// Función para crear un boton para el analisis de las señal con ML
+  auto add_ml_button = [&](const char *label) {
+    lv_obj_t *btn = lv_btn_create(signal_btn_container);
+    lv_obj_set_size(btn, 150, 40);
+    lv_obj_t *lbl = lv_label_create(btn);
+    lv_label_set_text(lbl, label);
+    lv_obj_center(lbl);
+
+    lv_obj_add_event_cb(btn, signal_button_event_cb, LV_EVENT_CLICKED, NULL);
+  };
+
+
+  // Crear los tres botones
+  add_signal_button("ECG");
+  add_signal_button("FCG");
+  add_signal_button("PPG");
+  
+  add_ml_button("Analize Signal");
 
 
   // ==== PESTAÑA 2: Lista Serial ====

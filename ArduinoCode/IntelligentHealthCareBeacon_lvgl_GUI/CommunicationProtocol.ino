@@ -1,81 +1,143 @@
 void parseMessage(const String& msg) {
-  if (msg.startsWith("<DATA>:")) {
-    String data = msg.substring(7);  // Elimina "<DATA>:"
+  if (!msg.startsWith("<DATA>:")) return;
 
-    bool valid_data = false;
+  String data = msg.substring(7);  // Elimina "<DATA>:"
+  bool valid_data = false;
 
-    // ECG en arreglo
-    if (data.indexOf("ECG=[") != -1) {
-      int start = data.indexOf('[') + 1;
-      int end = data.indexOf(']');
-      String ecg_values = data.substring(start, end);
+  auto extractField = [&](const String& key) -> String {
+    int idx = data.indexOf(key + "=");
+    if (idx == -1) return "";
 
-      int i = 0;
-      int min_val = 100000, max_val = -100000;
+    int start = idx + key.length() + 1;
+    int end = data.indexOf(';', start);
+    if (end == -1) end = data.length();
+    return data.substring(start, end);
+  };
 
-      while (ecg_values.length() > 0 && i < ecg_resolution) {
-        int comma = ecg_values.indexOf(',');
-        String value_str;
-        if (comma == -1) {
-          value_str = ecg_values;
-          ecg_values = "";
-        } else {
-          value_str = ecg_values.substring(0, comma);
-          ecg_values = ecg_values.substring(comma + 1);
-        }
+  // Procesar señales de tipo arreglo
+  auto processSignalArray = [&](const String& values_str) {
+    int i = 0;
+    int min_val = 100000, max_val = -100000;
+    String values = values_str;
 
-        float float_val = value_str.toFloat();
-        int scaled_val = float_val * 1000.0f;  // escala a enteros
-
-        series->y_points[i++] = scaled_val;
-
-        if (scaled_val < min_val) min_val = scaled_val;
-        if (scaled_val > max_val) max_val = scaled_val;
+    while (values.length() > 0 && i < ecg_resolution) {
+      int comma = values.indexOf(',');
+      String value_str;
+      if (comma == -1) {
+        value_str = values;
+        values = "";
+      } else {
+        value_str = values.substring(0, comma);
+        values = values.substring(comma + 1);
       }
 
-      // Ajustar el rango del gráfico dinámicamente
-      if (min_val < max_val) {
-        lvgl_port_lock(-1);
-        lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, min_val, max_val);
-        lv_chart_refresh(chart);
-        lvgl_port_unlock();
-      }
+      float float_val = value_str.toFloat();
+      int scaled_val = float_val * 1000.0f;
+
+      series->y_points[i++] = scaled_val;
+
+      if (scaled_val < min_val) min_val = scaled_val;
+      if (scaled_val > max_val) max_val = scaled_val;
     }
 
-    // Temperatura
-    int tempIndex = data.indexOf("TEMP=");
-    if (tempIndex != -1) {
-      float temp = data.substring(tempIndex + 5, data.indexOf(';', tempIndex)).toFloat();
-      String temp_str = String(temp, 1) + " °C";
-
+    if (min_val < max_val) {
       lvgl_port_lock(-1);
-      //lv_label_set_text_fmt(temp_label, "%.1f °C", temp);
-      //lv_label_set_text(temp_label, String(temperatura) + " °C");
-      lv_label_set_text(temp_label, temp_str.c_str());
+      lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, min_val, max_val);
+      lv_chart_refresh(chart);
       lvgl_port_unlock();
-      valid_data = true;
     }
+  };
 
-    // HR
-    int hrIndex = data.indexOf("HR=");
-    if (hrIndex != -1) {
-      int hr = data.substring(hrIndex + 3, data.indexOf(';', hrIndex)).toInt();
-      lvgl_port_lock(-1);
-      lv_label_set_text_fmt(hr_label, "%d bpm", hr);
-      lvgl_port_unlock();
-      valid_data = true;
-    }
+  // ---- Procesar tipos de señales ----
+  String ecg = extractField("ECG");
+  String ppg = extractField("PPG");
+  String fcg = extractField("FCG");
+  String joints = extractField("JOINTS");
+  String ml_result = extractField("ML_RESULT");
+  String temp = extractField("TEMP");
+  String hr = extractField("HR");
 
-    // ✅ Si recibimos al menos un dato válido, enviamos ACK
-    if (valid_data) {
-      Serial.println("<ACK>:DATA_RECEIVED;");
-    }
+  if (ecg.length() > 0) {
+    processSignalArray(ecg);
+    valid_data = true;
+  }
+
+  if (ppg.length() > 0) {
+    processSignalArray(ppg);
+    valid_data = true;
+  }
+
+  if (fcg.length() > 0) {
+    processSignalArray(fcg);
+    valid_data = true;
+  }
+
+  if (joints.length() > 0) {
+    Serial.println("Received Joints: " + joints);  // Aquí podrías procesar ángulos
+    valid_data = true;
+  }
+
+  if (ml_result.length() > 0) {
+    Serial.println("ML Result: " + ml_result);
+    valid_data = true;
+  }
+
+  if (temp.length() > 0) {
+    float temperature = temp.toFloat();
+    lvgl_port_lock(-1);
+    lv_label_set_text_fmt(temp_label, "%.1f °C", temperature);
+    lvgl_port_unlock();
+    valid_data = true;
+  }
+
+  if (hr.length() > 0) {
+    int heart_rate = hr.toInt();
+    lvgl_port_lock(-1);
+    lv_label_set_text_fmt(hr_label, "%d bpm", heart_rate);
+    lvgl_port_unlock();
+    valid_data = true;
+  }
+
+  // ✅ Enviar ACK si hubo datos válidos
+  if (valid_data) {
+    Serial.println("<ACK>:DATA_RECEIVED;");
   }
 }
 
 
 //<DATA>:ECG=[0.3743016759776536, 0.3743016759776536, 0.3743016759776536, 0.3798882681564246, 0.38547486033519557, 0.38547486033519557, 0.38547486033519557, 0.38547486033519557, 0.3910614525139665, 0.388268156424581, 0.39664804469273746, 0.3994413407821229, 0.3994413407821229, 0.39664804469273746, 0.393854748603352, 0.388268156424581, 0.388268156424581, 0.3798882681564246, 0.3770949720670391, 0.3687150837988827, 0.3687150837988827, 0.38268156424581007, 0.39664804469273746, 0.40223463687150834, 0.3994413407821229, 0.40223463687150834, 0.39664804469273746, 0.3910614525139665, 0.3910614525139665, 0.39664804469273746, 0.3910614525139665, 0.39664804469273746, 0.393854748603352, 0.39664804469273746, 0.39664804469273746, 0.393854748603352, 0.39664804469273746, 0.39664804469273746, 0.3994413407821229, 0.39664804469273746, 0.393854748603352, 0.3994413407821229, 0.3994413407821229, 0.393854748603352, 0.393854748603352, 0.3910614525139665, 0.393854748603352, 0.40223463687150834, 0.40502793296089384, 0.4106145251396648, 0.4273743016759777, 0.4245810055865922, 0.43575418994413406, 0.44134078212290506, 0.4273743016759777, 0.4078212290502793, 0.3910614525139665, 0.3798882681564246, 0.3770949720670391, 0.3743016759776536, 0.3687150837988827, 0.3715083798882682, 0.3687150837988827, 0.3715083798882682, 0.3770949720670391, 0.36033519553072624, 0.3687150837988827, 0.43854748603351956, 0.6675977653631285, 0.9078212290502793, 0.5139664804469274, 0.16480446927374304, 0.18435754189944134, 0.3016759776536313, 0.3575418994413408, 0.36312849162011174, 0.36592178770949724, 0.36592178770949724, 0.36592178770949724, 0.36592178770949724, 0.36592178770949724, 0.3687150837988827, 0.3743016759776536, 0.3743016759776536, 0.3715083798882682, 0.3743016759776536, 0.38268156424581007, 0.38547486033519557, 0.38547486033519557, 0.388268156424581, 0.3910614525139665, 0.393854748603352, 0.3910614525139665, 0.3910614525139665, 0.38547486033519557, 0.38268156424581007, 0.3743016759776536, 0.36592178770949724, 0.36033519553072624, 0.3575418994413408, 0.36592178770949724, 0.3743016759776536, 0.38547486033519557, 0.3910614525139665, 0.393854748603352, 0.393854748603352, 0.3910614525139665, 0.38268156424581007, 0.38268156424581007, 0.38268156424581007, 0.388268156424581, 0.388268156424581, 0.388268156424581, 0.388268156424581, 0.388268156424581, 0.38547486033519557, 0.388268156424581, 0.38547486033519557, 0.38547486033519557, 0.38547486033519557, 0.388268156424581, 0.388268156424581, 0.38268156424581007, 0.3798882681564246, 0.3798882681564246, 0.3770949720670391, 0.3798882681564246, 0.38547486033519557, 0.39664804469273746, 0.3994413407821229, 0.41620111731843573, 0.41620111731843573, 0.4245810055865922, 0.4245810055865922, 0.4301675977653631, 0.4078212290502793, 0.393854748603352, 0.3770949720670391, 0.36592178770949724, 0.36033519553072624, 0.36033519553072624, 0.3575418994413408, 0.3547486033519553, 0.36033519553072624, 0.36033519553072624, 0.3575418994413408, 0.34636871508379885, 0.388268156424581, 0.5223463687150838, 0.8128491620111732, 0.9050279329608939, 0.3715083798882682, 0.12849162011173187, 0.22625698324022347, 0.32402234636871513, 0.35195530726256985, 0.35195530726256985, 0.35195530726256985, 0.3547486033519553, 0.3547486033519553, 0.36033519553072624, 0.3575418994413408, 0.36033519553072624, 0.36033519553072624, 0.36033519553072624, 0.36592178770949724, 0.36592178770949724, 0.3687150837988827, 0.3687150837988827, 0.3715083798882682, 0.3798882681564246, 0.3770949720670391, 0.3798882681564246, 0.3798882681564246, 0.38268156424581007, 0.3770949720670391, 0.3715083798882682, 0.3687150837988827, 0.36312849162011174, 0.36033519553072624, 0.3547486033519553, 0.3575418994413408, 0.36033519553072624, 0.3743016759776536, 0.3798882681564246, 0.38268156424581007, 0.3798882681564246, 0.3770949720670391, 0.3743016759776536, 0.3687150837988827, 0.3715083798882682, 0.3715083798882682, 0.3743016759776536, 0.3743016759776536, 0.3770949720670391, 0.3770949720670391, 0.3715083798882682, 0.3715083798882682, 0.3770949720670391, 0.3770949720670391, 0.3770949720670391, 0.3743016759776536, 0.3743016759776536, 0.3687150837988827, 0.3715083798882682, 0.3743016759776536, 0.36592178770949724, 0.3798882681564246, 0.38547486033519557, 0.3910614525139665, 0.40502793296089384, 0.40223463687150834, 0.41620111731843573, 0.4106145251396648, 0.41620111731843573, 0.3910614525139665, 0.38268156424581007, 0.36592178770949724, 0.3547486033519553, 0.34916201117318435, 0.3575418994413408, 0.34636871508379885, 0.34916201117318435, 0.35195530726256985, 0.3547486033519553, 0.34636871508379885, 0.34636871508379885, 0.4134078212290503, 0.6424581005586592, 0.9441340782122905, 0.6424581005586592, 0.1871508379888268, 0.16480446927374304, 0.2877094972067039, 0.3435754189944134, 0.34916201117318435, 0.34916201117318435, 0.34636871508379885, 0.35195530726256985, 0.35195530726256985, 0.34636871508379885, 0.35195530726256985, 0.3575418994413408, 0.35195530726256985, 0.3547486033519553, 0.36312849162011174, 0.36592178770949724, 0.36592178770949724, 0.36592178770949724, 0.3687150837988827, 0.3743016759776536, 0.3715083798882682, 0.3715083798882682, 0.3743016759776536, 0.3770949720670391, 0.3743016759776536];TEMP=36.7;HR=76;
 
+void update_chart_auto_scale(lv_obj_t* chart, lv_chart_series_t* series, const std::vector<float>& data) {
+  if (data.empty()) return;
+
+  int min_val = 100000, max_val = -100000;
+  int n_points = data.size();
+
+  // Ajustar cantidad de puntos
+  lv_chart_set_point_count(chart, n_points);
+
+  for (int i = 0; i < n_points; i++) {
+    int scaled_val = data[i] * 1000.0f;  // Escalar si quieres usar enteros
+    series->y_points[i] = scaled_val;
+
+    if (scaled_val < min_val) min_val = scaled_val;
+    if (scaled_val > max_val) max_val = scaled_val;
+  }
+
+  // Ajustar rango dinámico en Y
+  if (min_val == max_val) {
+    min_val -= 10;
+    max_val += 10;
+  }
+
+  lv_chart_set_range(chart, LV_CHART_AXIS_PRIMARY_Y, min_val, max_val);
+
+  // Opcionalmente también ajustar ticks (líneas de división)
+  lv_chart_set_div_line_count(chart, 5, 5);
+
+  // Refrescar
+  lv_chart_refresh(chart);
+}
 
 
 String serialBuffer = "";
@@ -87,6 +149,7 @@ void read_serial_and_process() {
       // Fin de mensaje completo, procesar
       parseMessage(serialBuffer);
       serialBuffer = "";  // Limpiar para el siguiente mensaje
+      Serial.flush();
     } else {
       serialBuffer += c;
     }

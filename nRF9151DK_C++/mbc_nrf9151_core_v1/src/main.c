@@ -205,12 +205,12 @@ int main(void) {
                                    3, 0, K_NO_WAIT);
     k_thread_name_set(max30102_tid, "PPG Thread");
 
-    i2c_tid = k_thread_create(&i2c_thread_data, i2c_stack,
+    /*i2c_tid = k_thread_create(&i2c_thread_data, i2c_stack,
         K_THREAD_STACK_SIZEOF(i2c_stack),
         i2c_thread,
         NULL, NULL, NULL,
         3, 0, K_NO_WAIT);
-    k_thread_name_set(i2c_tid, "I2C Thread");
+    k_thread_name_set(i2c_tid, "I2C Thread");*/
 
 
     return 0;
