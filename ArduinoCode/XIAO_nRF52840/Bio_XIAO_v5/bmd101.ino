@@ -35,9 +35,11 @@ void parse_payload(void)  // Treatment of the content of the payload
           y_ecg = map(y_ecg, -32768, 32767, 0, 255);
           ecgBuffer[bdm_x_time] = y_ecg;
 
-          data = String(y_ecg) + ",";
           //read_gsr();
           //readIR();
+
+          ecg_data_block += String(rawValue) + ",";
+
 
           /*boron_404X.print(y_ecg);
           boron_404X.print(" ");

@@ -35,11 +35,10 @@ void parse_payload(void)  // Treatment of the content of the payload
           y_ecg = map(y_ecg, -32768, 32767, 0, 255);
           ecgBuffer[bdm_x_time] = y_ecg;
 
-          data = String(y_ecg) + ",";
           //read_gsr();
           //readIR();
 
-          /*boron_404X.print(y_ecg);
+          boron_404X.print(y_ecg);
           boron_404X.print(" ");
           boron_404X.print(ir_data*0.5);
           boron_404X.print(" ");
@@ -51,7 +50,7 @@ void parse_payload(void)  // Treatment of the content of the payload
           Serial.print(ir_data*0.5);
           Serial.print(" ");
           Serial.println(gsr);
-          delay(5);*/
+          delay(5);
 
 
           //Serial.println(notch50.filter(lp.filter(y_ecg)));

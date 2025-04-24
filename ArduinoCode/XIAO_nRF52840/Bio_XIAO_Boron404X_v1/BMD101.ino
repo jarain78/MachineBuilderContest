@@ -35,20 +35,19 @@ void parse_payload(void)  // Treatment of the content of the payload
           y_ecg = map(y_ecg, -32768, 32767, 0, 255);
           ecgBuffer[bdm_x_time] = y_ecg;
 
-          data = String(y_ecg) + ",";
           //read_gsr();
           //readIR();
-
+          data_block += String(y_ecg) + ",";
           /*boron_404X.print(y_ecg);
           boron_404X.print(" ");
-          boron_404X.print(ir_data*0.5);
+          boron_404X.print(ir_data * 0.5);
           boron_404X.print(" ");
           boron_404X.println(gsr);
-          
+
 
           Serial.print(y_ecg);
           Serial.print(" ");
-          Serial.print(ir_data*0.5);
+          Serial.print(ir_data * 0.5);
           Serial.print(" ");
           Serial.println(gsr);
           delay(5);*/
@@ -90,46 +89,44 @@ void parse_payload(void)  // Treatment of the content of the payload
 
 void read_bdm_101() {
 
-  if (bdmSerial.available()) {
-    while (bdmSerial.available() > 0) {
+  while (bdmSerial.available() > 0) {
 
-      Uart2_Buffer[Uart2_Rx] = bdmSerial.read();  //read bdmSerial
-      Uart2_Rx++;
+    Uart2_Buffer[Uart2_Rx] = bdmSerial.read();  //read bdmSerial
+    Uart2_Rx++;
 
-      if (Uart2_Rx < 3)  // Judgment whether the frame header is completed
+    if (Uart2_Rx < 3)  // Judgment whether the frame header is completed
+    {
+      if (Uart2_Buffer[Uart2_Rx - 1] != SYNC)  // abnormal
       {
-        if (Uart2_Buffer[Uart2_Rx - 1] != SYNC)  // abnormal
-        {
-          Uart2_Rx = 0;   // Laid 0
-          Uart2_Sta = 0;  // Sign into 0
-        }
-
-      } else if (Uart2_Rx == 3)  // Get the PAYLOAD length
-        Uart2_Len = Uart2_Buffer[Uart2_Rx - 1];
-      else if (Uart2_Rx < 4 + Uart2_Len)  // Receive PayLoad
-      {
-        checksum += Uart2_Buffer[Uart2_Rx - 1];  // calculate the check value
-        //checksum &= 0xFF;
-      } else  // Receive a check bit
-      {
-        Uart2_check = Uart2_Buffer[Uart2_Rx - 1];
-        checksum &= 0xFF;
-        checksum = ~checksum & 0xFF;
-        if (checksum != Uart2_check)  // Verify error, discard the packet
-        {
-          Uart2_Rx = 0;   // Laid 0
-          Uart2_Sta = 0;  // Sign into 0
-          checksum = 0;
-        } else
-          Uart2_Sta = 1;  // Receive completion
+        Uart2_Rx = 0;   // Laid 0
+        Uart2_Sta = 0;  // Sign into 0
       }
-      if (Uart2_Sta)  // Detect the logo, explain successful reception
+
+    } else if (Uart2_Rx == 3)  // Get the PAYLOAD length
+      Uart2_Len = Uart2_Buffer[Uart2_Rx - 1];
+    else if (Uart2_Rx < 4 + Uart2_Len)  // Receive PayLoad
+    {
+      checksum += Uart2_Buffer[Uart2_Rx - 1];  // calculate the check value
+      //checksum &= 0xFF;
+    } else  // Receive a check bit
+    {
+      Uart2_check = Uart2_Buffer[Uart2_Rx - 1];
+      checksum &= 0xFF;
+      checksum = ~checksum & 0xFF;
+      if (checksum != Uart2_check)  // Verify error, discard the packet
       {
         Uart2_Rx = 0;   // Laid 0
         Uart2_Sta = 0;  // Sign into 0
         checksum = 0;
-        parse_payload();  // Call the data resolution function
-      }
+      } else
+        Uart2_Sta = 1;  // Receive completion
+    }
+    if (Uart2_Sta)  // Detect the logo, explain successful reception
+    {
+      Uart2_Rx = 0;   // Laid 0
+      Uart2_Sta = 0;  // Sign into 0
+      checksum = 0;
+      parse_payload();  // Call the data resolution function
     }
   }
 }
