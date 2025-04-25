@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from mqtt_client import start_mqtt, received_messages
+from src.mqtt_client import start_mqtt, received_messages
 
 app = Flask(__name__)
 mqtt_client = start_mqtt()
