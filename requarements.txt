@@ -1,2 +1,4 @@
 paho-mqtt
 flask
+fastapi
+opencv-python

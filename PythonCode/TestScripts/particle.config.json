@@ -1,6 +1,6 @@
 {
     "token_type": "bearer",
-    "access_token": "1027a143c0c90ac3e88aa3edf33548823114d2d3",
+    "access_token": "8a1fe819cd40b420114d287c5a678d83cf1897c8",
     "username": "jarincon@ubu.es",
     "deviceID": "bio-device-7128",
     "api_base_url": "https://api.particle.io/v1/products/:productId",  
