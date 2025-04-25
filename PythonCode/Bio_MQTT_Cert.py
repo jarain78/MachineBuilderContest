@@ -1,32 +1,38 @@
 import paho.mqtt.client as mqtt
+import time
 
-# Configuración del broker (puede ser IP local o remoto)
-BROKER = "broker.emqx.io"  # o tu broker
-PORT = 1883
+# Configuración del broker
+BROKER = "broker.emqx.io"
+PORT = 8883  # Puerto seguro TLS
 TOPIC_SUB = "particle/data"
 TOPIC_PUB = "particle/commands"
 
-# Callback cuando nos conectamos al broker
+# Archivos de certificado (ajustá los paths a donde los tengas guardados)
+CA_CERT = "PythonCode/certs/broker.emqx.io-ca.crt"
+#CLIENT_CERT = "certs/client.crt"      # opcional
+#CLIENT_KEY = "certs/client.key"       # opcional
+
+# Callbacks
 def on_connect(client, userdata, flags, rc):
     print("✅ Conectado al broker con código:", rc)
     client.subscribe(TOPIC_SUB)
 
-# Callback cuando se recibe un mensaje
 def on_message(client, userdata, msg):
     print(f"📩 Mensaje recibido en {msg.topic}: {msg.payload.decode()}")
 
-# Crear cliente MQTT
+# Crear cliente
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-# Conectar al broker y mantener loop
+# Configurar TLS
+client.tls_set(ca_certs=CA_CERT) #, certfile=CLIENT_CERT, keyfile=CLIENT_KEY)
+
+# Conectar al broker
 client.connect(BROKER, PORT, 60)
 client.loop_start()
 
-# Enviar comandos al dispositivo Particle
-import time
-
+# Envío de mensajes
 try:
     while True:
         mensaje = input("Escribe un mensaje para el dispositivo Particle: ")

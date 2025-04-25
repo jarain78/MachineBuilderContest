@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MQTT Web</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        #send-div, #chart-div {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #chart-div {
+            width: 640px;
+            height: 480px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        input[type="text"] {
+            padding: 8px;
+            width: 60%;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 8px 16px;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 14px;
+            resize: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📡 Intelligent Health Care Beacon</h1>
+
+    <div id="send-div">
+        <h2>Enviar mensaje al dispositivo</h2>
+        <form action="/send" method="post">
+            <input type="text" name="mensaje" placeholder="Mensaje al dispositivo">
+            <button type="submit">Enviar</button>
+        </form>
+
+        <h3>📩 Mensajes recibidos:</h3>
+        <textarea id="message-log" readonly></textarea>
+    </div>
+
+    <div id="chart-div">
+        <h2>Gráfica de la señal recibida</h2>
+        <canvas id="chart"></canvas>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('chart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Señal',
+                    data: [],
+                    borderColor: 'blue',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        async function updateChart() {
+            const res = await fetch("/data");
+            const data = await res.json();
+
+            chart.data.labels = data.map((_, i) => i);
+            chart.data.datasets[0].data = data.map(Number);
+            chart.update();
+
+            // Mostrar mensajes en el textarea
+            const textarea = document.getElementById("message-log");
+            textarea.value = data.join("\n");
+            textarea.scrollTop = textarea.scrollHeight;
+        }
+
+        setInterval(updateChart, 1000);
+    </script>
+</body>
+</html>
