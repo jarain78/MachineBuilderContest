@@ -3,7 +3,7 @@ import os
 import json
 
 # Ruta al archivo de configuración
-config_path = os.path.expanduser("particle.config.json")
+config_path = os.path.expanduser("/home/jarain78/VisualCode/MachineBuilderContest/PythonCode/TestScripts/particle.config.json")
 
 # Verificar que el archivo existe
 if not os.path.exists(config_path):

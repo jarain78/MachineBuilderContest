@@ -3,8 +3,8 @@ import paho.mqtt.client as mqtt
 # Configuración del broker (puede ser IP local o remoto)
 BROKER = "broker.emqx.io"  # o tu broker
 PORT = 1883
-TOPIC_SUB = "particle/data"
-TOPIC_PUB = "particle/commands"
+TOPIC_SUB = "outTopic/message"
+TOPIC_PUB = "inTopic/message"
 
 # Callback cuando nos conectamos al broker
 def on_connect(client, userdata, flags, rc):
