@@ -2,7 +2,7 @@ import requests
 import json
 
 # Dirección del servidor Unity
-UNITY_SERVER = "http://localhost:8080"
+UNITY_SERVER = "http://127.0.0.1:8080"
 
 def get_angles():
     """Solicita los ángulos actuales del robot desde Unity."""
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 import requests
 import json
 
-angles = [90.0, -20.0, -15.0, 5.5]
+angles = [90.0, -20.0, -15.0, 5.5, 20, -10]
 data = {'angles': angles}
 res = requests.post(f'{UNITY_SERVER}/angles', json=data)
 print(res.json())
