@@ -23,7 +23,7 @@ int16_t pos_4 = 0;
 int16_t pos_5 = 0;
 int16_t pos_6 = 0;
 
-// Righ Arm
+// Right Arm
 LX16AServo servo_right_1(&servoBus, 7);
 LX16AServo servo_right_2(&servoBus, 8);
 LX16AServo servo_right_3(&servoBus, 9);
@@ -39,75 +39,44 @@ int16_t pos_10 = 0;
 int16_t pos_11 = 0;
 int16_t pos_12 = 0;
 
-
 uint16_t getAngle(int angle, int divisor) {
   return (angle * 24 * divisor);
-}
-
-int16_t getPosServoRightArm(int servoIndex) {
-
-  if (servoIndex == 7) {
-    return servo_right_1.pos_read();
-  } else if (servoIndex == 8) {
-    return servo_right_2.pos_read();
-  } else if (servoIndex == 9) {
-    return servo_right_3.pos_read();
-  } else if (servoIndex == 10) {
-    return servo_right_4.pos_read();
-  } else if (servoIndex == 11) {
-    return servo_right_5.pos_read();
-  } else if (servoIndex == 12) {
-    return servo_right_6.pos_read();
-  } else {
-    return -1;
-  }
-}
-
-int16_t getPosServoLeftArm(int servoIndex) {
-
-  if (servoIndex == 1) {
-    return servo_left_1.pos_read();
-  } else if (servoIndex == 2) {
-    return servo_left_2.pos_read();
-  } else if (servoIndex == 3) {
-    return servo_left_3.pos_read();
-  } else if (servoIndex == 4) {
-    return servo_left_4.pos_read();
-  } else if (servoIndex == 5) {
-    return servo_left_5.pos_read();
-  } else if (servoIndex == 6) {
-    return servo_left_6.pos_read();
-  } else {
-    return -1;
-  }
 }
 
 void setup() {
   // Tx pin: 18
   // Rx pin = 19
   servoBus.begin(&Serial2, 18, 19);
-  
-  Serial.begin(115200);
-  servoBus.retry = 1;  // enforce synchronous real time
+
+  Serial.begin(115200);  // Para comunicarse con el monitor serial
+  servoBus.retry = 1;    // Tiempo real
   servoBus.debug(false);
+
+  Serial.println("Ingrese un ángulo entre 0 y 240 grados:");
 }
 
 void loop() {
-  int16_t servo_l_pos = 0;
-  int16_t servo_r_pos = 0;
+  static float divisor = 4.1;
+  
+  if (Serial.available() > 0) {
+    String inputString = Serial.readStringUntil('\n');  // Leer la línea completa hasta salto de línea
+    inputString.trim();  // Eliminar espacios extra
 
-  for (int servoIndex = 1; servoIndex < 7; servoIndex++) {
-    servo_l_pos = getPosServoLeftArm(servoIndex);
-    delay(15);
-    Serial.print("Servo 1: ");
-    Serial.println(servo_l_pos);
-  }
+    if (inputString.length() > 0) {
+      float angle_input = inputString.toFloat();  // Convertir el texto a número
 
-  for (int servoIndex = 7; servoIndex < 13; servoIndex++) {
+      if (angle_input >= 0.0 && angle_input <= 240.0) {
+        uint16_t angle = angle_input * 24 * divisor;
 
-    servo_r_pos = getPosServoRightArm(servoIndex);
-    delay(15);
-    Serial.print("Servo 2: ");
-    Serial.println(servo_r_pos);
+        // Mover el servo
+        servo_left_1.move_time_and_wait_for_sync(angle, 10 * divisor);
+        servoBus.move_sync_start();
+
+        Serial.print("Moviendo a ángulo: ");
+        Serial.println(angle_input);
+      } else {
+        Serial.println("Error: ángulo fuera de rango (0 - 240).");
+      }
+    }
   }
 }
