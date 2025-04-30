@@ -57,10 +57,10 @@ void setup() {
 
 void loop() {
   static float divisor = 4.1;
-  
+
   if (Serial.available() > 0) {
     String inputString = Serial.readStringUntil('\n');  // Leer la línea completa hasta salto de línea
-    inputString.trim();  // Eliminar espacios extra
+    inputString.trim();                                 // Eliminar espacios extra
 
     if (inputString.length() > 0) {
       float angle_input = inputString.toFloat();  // Convertir el texto a número
@@ -70,6 +70,9 @@ void loop() {
 
         // Mover el servo
         servo_left_1.move_time_and_wait_for_sync(angle, 10 * divisor);
+        int32_t pos = servo_left_1.pos_read();
+        Serial.print("Servo Pos: ");
+        Serial.println(pos);
         servoBus.move_sync_start();
 
         Serial.print("Moviendo a ángulo: ");

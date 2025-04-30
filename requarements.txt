@@ -3,3 +3,7 @@ flask
 fastapi
 opencv-python
 websockets
+ikpy
+PyYAML
+pylx16a
+ipywidgets

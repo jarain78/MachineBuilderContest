@@ -1,5 +1,6 @@
 #include <EloquentTinyML.h>
 #include <eloquent_tinyml/tensorflow.h>
+#include <Arduino.h>
 #include <lx16a-servo.h>
 
 // sine_model.h contains the array you exported from Python with xxd or tinymlgen
@@ -18,20 +19,24 @@ float output_data = 0;
 
 
 // Angle Arm Pos
-float angles[6][5] = {
-  { 0.0, 182.64, 182.64, 89.76, 88.08 },
+float angles[7][5] = {
+  { 10.0, 180.64, 180.64, 89.76, 88.08 },
   { 81.6, 106.32, 113.52, 90.24, 104.88 },
   { 81.6, 62.16, 54.96, 90.0, 80.64 },
   { 90.96, 76.32, 81.12, 90.24, 95.28 },
   { 69.84, 61.92, 69.84, 90.48, 94.56 },
-  { 78.0, 46.08, 52.32, 90.48, 94.56 }
+  { 78.0, 46.08, 52.32, 90.48, 94.56 },
+  { 10.0, 180.64, 180.64, 89.76, 88.08 }
 };
 
+// LEFT:10.0,180.64,180.64,89.76,88.08
 
 // Servo Controll
 LX16ABus servoBus;
-LX16AServo servo(&servoBus, 7);
-LX16AServo servo2(&servoBus, 8);
-LX16AServo servo3(&servoBus, 9);
-LX16AServo servo3(&servoBus, 10);
-LX16AServo servo3(&servoBus, 11);
+LX16AServo joint_1(&servoBus, 7);
+LX16AServo joint_2(&servoBus, 8);
+LX16AServo joint_3(&servoBus, 9);
+LX16AServo joint_4(&servoBus, 10);
+LX16AServo joint_5(&servoBus, 11);
+
+static float divisor = 4.1;
