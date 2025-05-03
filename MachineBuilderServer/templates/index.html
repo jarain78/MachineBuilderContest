@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>MQTT Web</title>
@@ -55,18 +55,18 @@
     <h1>📡 Intelligent Health Care Beacon</h1>
 
     <div id="send-div">
-        <h2>Enviar mensaje al dispositivo</h2>
+        <h2>Send message to the device</h2>
         <form action="/send" method="post">
-            <input type="text" name="mensaje" placeholder="Mensaje al dispositivo">
-            <button type="submit">Enviar</button>
+            <input type="text" name="mensaje" placeholder="Message to the device">
+            <button type="submit">Send</button>
         </form>
 
-        <h3>📩 Mensajes recibidos:</h3>
+        <h3>📩 Received messages:</h3>
         <textarea id="message-log" readonly></textarea>
     </div>
 
     <div id="chart-div">
-        <h2>Gráfica de la señal recibida</h2>
+        <h2>Received Signal Chart</h2>
         <canvas id="chart"></canvas>
     </div>
 
@@ -77,7 +77,7 @@
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Señal',
+                    label: 'Signal',
                     data: [],
                     borderColor: 'blue',
                     borderWidth: 2,
@@ -103,7 +103,7 @@
             chart.data.datasets[0].data = data.map(Number);
             chart.update();
 
-            // Mostrar mensajes en el textarea
+            // Show messages in the textarea
             const textarea = document.getElementById("message-log");
             textarea.value = data.join("\n");
             textarea.scrollTop = textarea.scrollHeight;

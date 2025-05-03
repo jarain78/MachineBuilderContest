@@ -1,4 +1,4 @@
-import requests
+'''import requests
 import os
 import json
 
@@ -41,6 +41,7 @@ def get_device_info():
 print(get_device_info())
 
 
+'''
 import requests
 import threading
 import json
@@ -90,5 +91,8 @@ class ParticleClient:
 def handle_event(event):
     print("📩 Evento recibido:", event)
 
-#client = ParticleClient(access_token=access_token, base_url=api_base_url, emulation_mode=False)
-#client.subscribe_event("adc_block_", handle_event)
+access_token = "8a1fe819cd40b420114d287c5a678d83cf1897c8",
+api_base_url = "https://api.particle.io/v1"
+
+client = ParticleClient(access_token=access_token, base_url=api_base_url, emulation_mode=False)
+client.subscribe_event("adc_block_", handle_event)

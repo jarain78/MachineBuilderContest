@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 
 # Configuración del broker (puede ser IP local o remoto)
-BROKER = "broker.emqx.io"  # o tu broker
+BROKER = "iot.eclipse.org"  # o tu broker
 PORT = 1883
 TOPIC_SUB = "outTopic/message"
 TOPIC_PUB = "inTopic/message"
