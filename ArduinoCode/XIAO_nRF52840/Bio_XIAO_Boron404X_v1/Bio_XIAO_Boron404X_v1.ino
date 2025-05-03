@@ -27,6 +27,9 @@ void loop() {
   }
 }
 
+
+
+
 void resetBuffer() {
   memset(ecgBuffer, 0, sizeof(ecgBuffer));
   memset(gsrBuffer, 0, sizeof(gsrBuffer));

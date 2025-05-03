@@ -1,0 +1,12 @@
+{
+    "distro": {
+        "stack": "ubuntu-base",
+        "version": "1.0.25",
+        "variant": "release"
+    },
+    "src": {
+        "ubuntu_20_04": "image-48-ff4c992de",
+        "quectel_bp_fw": "1.0.5",
+        "syscon_firmware": "v0.7.16"
+    }
+}

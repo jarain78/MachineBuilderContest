@@ -12,7 +12,7 @@
 #define capture_interval 30000UL  // Intervalo de captura (30 segundos)
 #define sample_interval 5         // Intervalo entre muestras (ms)
 #define signal_pin A0             // Pin analógico para ECG o GSR
-#define CHUNK_SIZE 50             // Cantidad de datos por paquete
+#define CHUNK_SIZE 150             // Cantidad de datos por paquete
 
 // === Constantes BDM101 ===
 #define EXCODE 0x55
