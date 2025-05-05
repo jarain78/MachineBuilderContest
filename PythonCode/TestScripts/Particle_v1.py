@@ -3,10 +3,25 @@ import json
 import signal
 import matplotlib.pyplot as plt
 from collections import defaultdict
+import csv
+from pathlib import Path
 
 # Buffer para señales por tipo
 signal_data = defaultdict(list)
 
+# === Guardar datos por tipo en CSV ===
+def save_signals_to_csv(data_by_type, output_dir="capturas_csv"):
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    for signal, values in data_by_type.items():
+        filename = Path(output_dir) / f"{signal}.csv"
+        with open(filename, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Sample", "Value"])
+            for idx, val in enumerate(values):
+                writer.writerow([idx, val])
+        print(f"💾 Señal '{signal}' guardada en: {filename}")
+
+# === Graficar señales ===
 def plot_signals(data_by_type):
     plt.figure(figsize=(12, 6))
     for i, (signal, values) in enumerate(data_by_type.items(), 1):
@@ -20,16 +35,16 @@ def plot_signals(data_by_type):
     plt.tight_layout()
     plt.show()
 
-
-# Captura señal de Ctrl+C para graficar al final
+# === Ctrl+C para terminar ===
 def signal_handler(sig, frame):
-    print("\n📊 Finalizando captura y generando gráficas...")
+    print("\n📊 Finalizando captura...")
+    save_signals_to_csv(signal_data)
     plot_signals(signal_data)
     exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
 
-# Ejecutar ./particle subscribe
+# === Suscribirse al stream de Particle ===
 with subprocess.Popen(['./particle', 'subscribe'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) as proc:
     print("📡 Suscribiéndose a eventos desde Particle... (Ctrl+C para detener)")
     for line in proc.stdout:
