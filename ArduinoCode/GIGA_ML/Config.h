@@ -1,4 +1,4 @@
-#include <EloquentTinyML.h>
+#include <EloquentTinyML.h>  // Version 2.4.4
 #include <eloquent_tinyml/tensorflow.h>
 #include <Arduino.h>
 #include <lx16a-servo.h>
