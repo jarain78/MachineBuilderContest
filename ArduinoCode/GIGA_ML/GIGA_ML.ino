@@ -13,7 +13,7 @@ void setup() {
 
   Serial.begin(115200);
   delay(4000);
-  //tf.begin(ecg_model);
+  tf.begin(ecg_model);
 
   initRobot();
 }
@@ -28,14 +28,14 @@ void loop() {
     delay(1000);
   }
 
-  /*pose_1();
+  pose_1();
   delay(3000);
   pose_2();
   delay(3000);
   pose_3();
   delay(3000);
   pose_1();
-  delay(6000);*/
+  delay(6000);
 }
 
 
