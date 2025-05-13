@@ -9,6 +9,7 @@
 // My includes
 #include "biosignal.h"
 #include "ecg.h"
+//#include "fcg.h"
 #include "i2c_helper.h"
 #include "robot.h"  
 #include "max30102.h"
@@ -19,21 +20,25 @@ const struct device *uart_dev;
 
 // Semaphore to trigger each task
 struct k_sem ecg_sem;
+//struct k_sem fcg_sem;
 struct k_sem max30102_sem;
 struct k_sem i2c_sem;
 
 // Thread stacks and structures
 K_THREAD_STACK_DEFINE(ecg_stack, 1024);
+//K_THREAD_STACK_DEFINE(fcg_stack, 1024);
 K_THREAD_STACK_DEFINE(uart_stack, 1024);
 K_THREAD_STACK_DEFINE(max30102_stack, 1024);
 K_THREAD_STACK_DEFINE(i2c_stack, 1024);
 
 struct k_thread ecg_thread_data;
+//struct k_thread fcg_thread_data;
 struct k_thread uart_thread_data;
 struct k_thread i2c_thread_data;
 struct k_thread max30102_thread_data;
 
 k_tid_t ecg_tid;
+//k_tid_t fcg_tid;
 k_tid_t uart_tid;
 k_tid_t i2c_tid;    
 k_tid_t max30102_tid;    
@@ -82,9 +87,9 @@ void i2c_thread(void *arg1, void *arg2, void *arg3) {
 }
 
 
-// ECG data capture simulation
+// ecg data capture simulation
 void ecg_thread(void *arg1, void *arg2, void *arg3) {
-    printk("[ECG] ECG thread started and waiting for signal...\n");
+    printk("[ECG] ecg thread started and waiting for signal...\n");
 
     while (1) {
         k_sem_take(&ecg_sem, K_FOREVER);
@@ -95,7 +100,7 @@ void ecg_thread(void *arg1, void *arg2, void *arg3) {
             printk("[ECG] Error capturing data.\n");
             continue;
         } else {
-            //biosignal_send_data_generic("ECG", captured_ecg, ECG_SAMPLES, 10.5, 78);
+            //biosignal_send_data_generic("ecg", captured_ecg, ecg_SAMPLES, 10.5, 78);
             biosignal_send_data("ECG", captured_ecg, ECG_SAMPLES);
 
         }
@@ -103,6 +108,29 @@ void ecg_thread(void *arg1, void *arg2, void *arg3) {
         printk("[ECG] Capture complete. Returning to wait state.\n");
     }
 }
+
+// FCG data capture simulation
+/*void fcg_thread(void *arg1, void *arg2, void *arg3) {
+    printk("[FCG] FCG thread started and waiting for signal...\n");
+
+    while (1) {
+        k_sem_take(&fcg_sem, K_FOREVER);
+        printk("[FCG] Capturing data...\n");
+
+        float *captured_fcg = fcg_sample_task();
+        if (captured_fcg == NULL) {
+            printk("[FCG] Error capturing data.\n");
+            continue;
+        } else {
+            //biosignal_send_data_generic("fcg", captured_fcg, fcg_SAMPLES, 10.5, 78);
+            biosignal_send_data("FCG", captured_fcg, FCG_SAMPLES);
+
+        }
+
+        printk("[FCG] Capture complete. Returning to wait state.\n");
+    }
+}*/
+
 
 void max30102_thread(void *arg1, void *arg2, void *arg3) {
     const struct device *i2c_dev = i2c_helper_init();
@@ -154,6 +182,9 @@ void uart_thread(void *arg1, void *arg2, void *arg3) {
                 } else if (strstr(cmd_buf, "<CMD>:START:PPG;")) {
                     printk("[UART] Trigger PPG capture.\n");
                     k_sem_give(&max30102_sem);
+                }else if (strstr(cmd_buf, "<CMD>:START:FCG;")) {
+                    printk("[UART] Trigger FCG capture.\n");
+                    k_sem_give(&ecg_sem);
                 }
 
                 cmd_index = 0;
@@ -180,8 +211,10 @@ int main(void) {
 
     biosignal_init(uart_dev);
     ecg_adc_init();
+    fcg_adc_init();
 
     k_sem_init(&ecg_sem, 0, 1);
+    //k_sem_init(&fcg_sem, 0, 1);
     k_sem_init(&max30102_sem, 0, 1);
 
     ecg_tid = k_thread_create(&ecg_thread_data, ecg_stack,
@@ -190,6 +223,13 @@ int main(void) {
                               NULL, NULL, NULL,
                               4, 0, K_NO_WAIT);
     k_thread_name_set(ecg_tid, "ECG Thread");
+
+    /*fcg_tid = k_thread_create(&fcg_thread_data, fcg_stack,
+                              K_THREAD_STACK_SIZEOF(fcg_stack),
+                              fcg_thread,
+                              NULL, NULL, NULL,
+                              4, 0, K_NO_WAIT);
+    k_thread_name_set(fcg_tid, "FCG Thread");*/
 
     uart_tid = k_thread_create(&uart_thread_data, uart_stack,
                                K_THREAD_STACK_SIZEOF(uart_stack),

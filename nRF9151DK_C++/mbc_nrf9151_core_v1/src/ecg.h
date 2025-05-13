@@ -14,6 +14,9 @@
 #define ECG_ADC_ACQUISITION_TIME ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)
 #define ECG_ADC_NODE        DT_LABEL(DT_NODELABEL(adc))
 
+#define FCG_ADC_CHANNEL     1          // Canal AIN1
+#define FCG_ADC_INPUT       NRF_SAADC_INPUT_AIN1
+
 #define SAADC_GAIN         (1.0f / 6.0f)
 #define SAADC_REF_VOLTAGE  0.6f  // V
 #define ADC_RESOLUTION     4096.0f  // 12 bits
@@ -23,8 +26,10 @@ extern int16_t ecg_buffer[ECG_SAMPLES];  // Buffer para los datos crudos
 extern struct k_sem ecg_done;            // Semáforo para indicar fin de adquisición
 
 int ecg_adc_init(void);
+int fcg_adc_init(void);
 //void ecg_sample_task(void);
 float* ecg_sample_task(void);
+float* fcg_sample_task(void);
 
     
 #endif // ECG_ADC_H

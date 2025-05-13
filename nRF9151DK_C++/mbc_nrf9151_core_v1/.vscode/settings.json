@@ -11,6 +11,8 @@
         "stdbool.h": "c",
         "string.h": "c",
         "robot.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "spo2.h": "c",
+        "biosignal.h": "c"
     }
 }
