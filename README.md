@@ -1,13 +1,63 @@
 # MachineBuilderContest
 
-git remote add origin https://github.com/jarain78/MachineBuilderContest.git
-git branch -M main
-git push -u origin main
+# 🏥 Intelligent Health Care Beacon
 
+A **low-cost, modular**, and **AI-powered** remote health monitoring system designed for rural areas, expeditions, and environments with limited medical infrastructure. It enables real-time acquisition, classification, and transmission of biosignals to support early detection and continuous care.
 
-angulos posicion 0: [0.0, 182.64, 182.64, 89.76, 88.08]
-angulos posicion 1: [81.6, 106.32, 113.52, 90.24, 104.88]
-angulos posicion 2: [81.6, 62.16, 54.96, 90.0, 80.64]
-angulos posicion 3: [90.96, 76.32, 81.12, 90.24, 95.28]
-angulos posicion 4: [69.84, 61.92, 69.84, 90.48, 94.56]
-angulos posicion 5: [78.0, 46.08, 52.32, 90.48, 94.56]
+![Main Unit](https://hackster.imgix.net/uploads/attachments/1745915/mainunit_aK6wYchAM5.jpeg?auto=compress%2Cformat&w=900&h=675&fit=max)
+
+---
+
+## 🚀 Features
+
+- ✅ ECG (electrocardiogram) signal acquisition using BDM-101  
+- ✅ Digital stethoscope for heart and respiratory sound capture  
+- ✅ Robotic arm for automated auscultation  
+- ✅ Real-time monitoring of Heart Rate, SpO2, and GSR  
+- ✅ AI-based ECG classification (e.g., atrial fibrillation detection)  
+- ✅ Multi-protocol communication: **LoRa, LTE-M, NB-IoT, WiFi, BLE**  
+- ✅ Rugged design: Shockproof and waterproof enclosure  
+- ✅ Cloud connectivity for remote diagnosis and alerts  
+
+---
+
+## 📦 Hardware Components
+
+- [Boron 404X](https://docs.particle.io/boron/)
+- BDM-101 ECG Sensor  
+- Digital stethoscope  
+- Robotic arm (custom or commercial)  
+- SSD1306 OLED Display  
+- Additional sensors: GSR, PPG, SpO2  
+- Rechargeable LiPo Battery or Power Supply  
+
+---
+
+## 🧠 AI & Signal Processing
+
+The system leverages embedded AI to classify ECG signals and identify arrhythmias such as **atrial fibrillation**.  
+Future enhancements will integrate:
+
+- 🩺 Blood pressure monitoring  
+- 🧪 Glucometer readings  
+- 🧬 Multimodal signal fusion for advanced diagnostics  
+
+---
+
+## 📡 Communication Protocols
+
+- **LoRa** – Long-range, low-power  
+- **LTE-M / NB-IoT** – Cellular connectivity  
+- **WiFi** – Local wireless communication  
+- **BLE** – Bluetooth Low Energy for wearable integration  
+
+Data is transmitted securely to the cloud or local dashboards for remote visualization and early alerts.
+
+---
+
+## 🔧 Setup & Usage
+
+```bash
+git clone https://github.com/<your-username>/intelligent-health-care-beacon.git
+cd intelligent-health-care-beacon
+
