@@ -4,7 +4,9 @@
 
 A **low-cost, modular**, and **AI-powered** remote health monitoring system designed for rural areas, expeditions, and environments with limited medical infrastructure. It enables real-time acquisition, classification, and transmission of biosignals to support early detection and continuous care.
 
-![Main Unit](https://hackster.imgix.net/uploads/attachments/1745915/mainunit_aK6wYchAM5.jpeg?auto=compress%2Cformat&w=900&h=675&fit=max)
+
+![Main Unit](Images/_IcGBPB1u3v.blob.png)
+
 
 ---
 
